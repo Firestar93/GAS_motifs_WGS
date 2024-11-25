@@ -28,7 +28,7 @@ def build_bed_intervals(bed_file):
     index_array = bed_df.index.to_numpy()
 
     # Iterate over the NumPy arrays
-    for chrom, start, end, sequence, idx in zip(
+    for chrom, start, end, sequence, sequence_type, idx in zip(
         chrom_array, start_array, end_array, sequence_array, sequence_type_array, index_array
     ):
         bed_dict[chrom].append(
@@ -71,7 +71,7 @@ def parse_vcf_once(vcf_file, bed_dict, bed_df):
                                 + interval["sequence"][pos + 1 :]
                             )
                             if check_gas_motif(modified_sequence):
-                                print("Found GAS motif creating SNP!" + vcf_chrom + ";" + vcf_pos +  ";" + ref + ";" + alt + " in GAS motif " + interval["sequence_type"])
+                                print("Found GAS motif creating SNP!" + str(vcf_chrom) + ";" + str(vcf_pos) +  ";" + ref + ";" + alt + " in GAS motif: " + interval["sequence_type"])
                                 current_vcfs = bed_df.at[interval["idx"], "vcf_files"]
                                 if pd.isna(current_vcfs) or current_vcfs == "":
                                     bed_df.at[
