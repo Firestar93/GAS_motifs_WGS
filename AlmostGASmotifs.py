@@ -47,6 +47,7 @@ def parse_vcf_once(vcf_file, bed_dict, bed_df):
     """
     Processes a VCF file and updates BED entries with matching VCF file names.
     """
+    counter = 0
     with open(vcf_file, 'r') as f:
         for line in f:
             if line.startswith("#"):
@@ -60,18 +61,31 @@ def parse_vcf_once(vcf_file, bed_dict, bed_df):
             )
             vcf_chrom = vcf_chrom.replace('chr', '')
 
+            counter = counter + 1
+
+            if counter % 1000 == 0:
+                print("Checked " + str(counter))
+
             if vcf_chrom in bed_dict:
                 for interval in bed_dict[vcf_chrom]:
                     if interval["start"] <= vcf_pos <= interval["end"]:
-                        pos = vcf_pos - interval["start"]  # Position within the sequence
+                        pos = vcf_pos - interval["start"] -1 # Position within the sequence
+                        if pos < 0:
+                            continue
                         for alt in alts.split(","):
+                            if len(alt)>1:
+                                continue
                             modified_sequence = (
                                 interval["sequence"][:pos]
                                 + alt
                                 + interval["sequence"][pos + 1 :]
                             )
                             if check_gas_motif(modified_sequence):
-                                print("Found GAS motif creating SNP!" + str(vcf_chrom) + ";" + str(vcf_pos) +  ";" + ref + ";" + alt + " in GAS motif: " + interval["sequence_type"])
+
+                                print("Found GAS motif creating SNP! " + str(vcf_chrom) + ";" + str(vcf_pos) +  ";" + ref + ";" + alt + " in GAS motif modified sequence: " + modified_sequence + " at " + str(interval["start"]) + "-" + str(interval["end"]))
+                                print(f"vcf_pos: {vcf_pos}, interval_start: {interval['start']}, pos: {pos}")
+                                print(f"Original sequence: {interval['sequence']}")
+
                                 current_vcfs = bed_df.at[interval["idx"], "vcf_files"]
                                 if pd.isna(current_vcfs) or current_vcfs == "":
                                     bed_df.at[
@@ -86,9 +100,7 @@ def check_gas_motif(sequence):
     """
     Checks if the sequence matches GAS motif patterns TTCxxxGAA or TTCxxxxGAA.
     """
-    return sequence.startswith("TTC") and (
-        sequence[3:6] == "GAA" or sequence[3:7] == "GAA"
-    )
+    return sequence[:3] == "TTC" and sequence[-3:] == "GAA"
 
 def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     """
