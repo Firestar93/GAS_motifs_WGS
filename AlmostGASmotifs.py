@@ -2,48 +2,52 @@ import pandas as pd
 import os
 import glob
 import numpy as np
+from intervaltree import IntervalTree
 from collections import defaultdict
+from datetime import datetime
+
+def print_with_time(message):
+    """
+    Prints a message with the current timestamp.
+    """
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {message}")
 
 def build_bed_intervals(bed_file):
     """
-    Reads the BED file and creates a dictionary of intervals for fast lookup.
-    Uses NumPy arrays for faster iteration.
+    Reads the BED file and creates interval trees for fast lookup.
     """
     # Load the BED file
+    print_with_time("Load the bedfile")
     bed_df = pd.read_csv(
         bed_file, sep="\t", header=None, names=["chrom", "start", "end", "sequence"]
     )
     # Process the 'sequence' column
     bed_df["sequence_type"] = bed_df["sequence"]
     bed_df["sequence"] = bed_df["sequence"].str.split('-').str[1]
-    # Initialize the dictionary
-    bed_dict = defaultdict(list)
 
-    # Convert DataFrame columns to NumPy arrays
-    chrom_array = bed_df["chrom"].astype(str).to_numpy()
-    start_array = bed_df["start"].to_numpy()
-    end_array = bed_df["end"].to_numpy()
-    sequence_array = bed_df["sequence"].to_numpy()
-    sequence_type_array = bed_df["sequence_type"].to_numpy()
-    index_array = bed_df.index.to_numpy()
+    print_with_time("Finished loading the bedfile")
+    print_with_time("Populate the IntervalTree")
 
-    # Iterate over the NumPy arrays
-    for chrom, start, end, sequence, sequence_type, idx in zip(
-        chrom_array, start_array, end_array, sequence_array, sequence_type_array, index_array
-    ):
-        bed_dict[chrom].append(
-            {
-                "start": start,
-                "end": end,
-                "sequence": sequence,
-                "sequence_type" : sequence_type_array,
-                "idx": idx,
-            }
-        )
+    # Initialize a dictionary of interval trees
+    bed_trees = defaultdict(IntervalTree)
 
-    return bed_df, bed_dict
+    # Populate the interval trees
+    for idx, row in bed_df.iterrows():
+        chrom = str(row["chrom"])
+        start = row["start"]
+        end = row["end"]
+        bed_trees[chrom][start:end] = {
+            "sequence": row["sequence"],
+            "sequence_type": row["sequence_type"],
+            "idx": idx,
+        }
 
-def parse_vcf_once(vcf_file, bed_dict, bed_df):
+    print_with_time("Finished populating the IntervalTree")
+
+
+    return bed_df, bed_trees
+
+def parse_vcf_once(vcf_file, bed_trees, bed_df):
     """
     Processes a VCF file and updates BED entries with matching VCF file names.
     """
@@ -61,40 +65,36 @@ def parse_vcf_once(vcf_file, bed_dict, bed_df):
             )
             vcf_chrom = vcf_chrom.replace('chr', '')
 
-            counter = counter + 1
+            counter += 1
+            if counter % 10000 == 0:
+                print_with_time("Checked " + str(counter) + " SNPs in " + vcf_file)
 
-            if counter % 1000 == 0:
-                print("Checked " + str(counter))
-
-            if vcf_chrom in bed_dict:
-                for interval in bed_dict[vcf_chrom]:
-                    if interval["start"] <= vcf_pos <= interval["end"]:
-                        pos = vcf_pos - interval["start"] -1 # Position within the sequence
-                        if pos < 0:
+            if vcf_chrom in bed_trees:
+                # Query the interval tree for overlapping intervals
+                overlapping_intervals = bed_trees[vcf_chrom][vcf_pos]
+                for interval in overlapping_intervals:
+                    data = interval.data
+                    pos = vcf_pos - interval.begin - 1  # Position within the sequence
+                    if pos < 0:
+                        continue
+                    for alt in alts.split(","):
+                        if len(alt) > 1:
                             continue
-                        for alt in alts.split(","):
-                            if len(alt)>1:
-                                continue
-                            modified_sequence = (
-                                interval["sequence"][:pos]
-                                + alt
-                                + interval["sequence"][pos + 1 :]
-                            )
-                            if check_gas_motif(modified_sequence):
+                        modified_sequence = (
+                            data["sequence"][:pos]
+                            + alt
+                            + data["sequence"][pos + 1:]
+                        )
+                        if check_gas_motif(modified_sequence):
+                            print_with_time("Found GAS motif creating SNP! " + str(vcf_chrom) + ";"+ str(vcf_pos) +";" + ref +";" + alt)
+                            print_with_time("in GAS motif modified sequence: " + modified_sequence + " from original sequence:" + data["sequence"] + " at position " + pos)
+                            print_with_time("at " + str(interval.begin)+"-"+str(interval.end))
 
-                                print("Found GAS motif creating SNP! " + str(vcf_chrom) + ";" + str(vcf_pos) +  ";" + ref + ";" + alt + " in GAS motif modified sequence: " + modified_sequence + " at " + str(interval["start"]) + "-" + str(interval["end"]))
-                                print(f"vcf_pos: {vcf_pos}, interval_start: {interval['start']}, pos: {pos}")
-                                print(f"Original sequence: {interval['sequence']}")
-
-                                current_vcfs = bed_df.at[interval["idx"], "vcf_files"]
-                                if pd.isna(current_vcfs) or current_vcfs == "":
-                                    bed_df.at[
-                                        interval["idx"], "vcf_files"
-                                    ] = os.path.basename(vcf_file)
-                                else:
-                                    bed_df.at[
-                                        interval["idx"], "vcf_files"
-                                    ] += f";{os.path.basename(vcf_file)}"
+                            current_vcfs = bed_df.at[data["idx"], "vcf_files"]
+                            if pd.isna(current_vcfs) or current_vcfs == "":
+                                bed_df.at[data["idx"], "vcf_files"] = os.path.basename(vcf_file)
+                            else:
+                                bed_df.at[data["idx"], "vcf_files"] += f";{os.path.basename(vcf_file)}"
 
 def check_gas_motif(sequence):
     """
@@ -108,7 +108,7 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     Writes a new BED file with an extra column containing VCF file names.
     """
     # Build intervals from BED file
-    bed_df, bed_dict = build_bed_intervals(bed_file)
+    bed_df, bed_trees = build_bed_intervals(bed_file)
 
     # Initialize an empty column for VCF file names
     bed_df["vcf_files"] = ""
@@ -117,7 +117,7 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     vcf_files = glob.glob(os.path.join(vcf_folder, "*.vcf"))
     # Process each VCF file once
     for vcf_file in vcf_files:
-        parse_vcf_once(vcf_file, bed_dict, bed_df)
+        parse_vcf_once(vcf_file, bed_trees, bed_df)
 
     # Clean up VCF file lists and remove trailing semicolons
     bed_df["vcf_files"] = bed_df["vcf_files"].str.rstrip(";")
@@ -126,9 +126,9 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     bed_df.to_csv(output_bed, sep="\t", index=False, header=False)
 
     # Print directories for logging
-    print(f"Input BED file: {os.path.abspath(bed_file)}")
-    print(f"VCF folder: {os.path.abspath(vcf_folder)}")
-    print(f"Output BED file: {os.path.abspath(output_bed)}")
+    print_with_time(f"Input BED file: {os.path.abspath(bed_file)}")
+    print_with_time(f"VCF folder: {os.path.abspath(vcf_folder)}")
+    print_with_time(f"Output BED file: {os.path.abspath(output_bed)}")
 
 if __name__ == "__main__":
     bed_file = (
