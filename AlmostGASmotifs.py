@@ -87,7 +87,7 @@ def parse_vcf_once(vcf_file, bed_trees, bed_df):
                         )
                         if check_gas_motif(modified_sequence):
                             print_with_time("Found GAS motif creating SNP! " + str(vcf_chrom) + ";"+ str(vcf_pos) +";" + ref +";" + alt)
-                            print_with_time("in GAS motif modified sequence: " + modified_sequence + " from original sequence:" + data["sequence"] + " at position " + pos)
+                            print_with_time("in GAS motif modified sequence: " + modified_sequence + " from original sequence:" + data["sequence"] + " at position " + str(pos))
                             print_with_time("at " + str(interval.begin)+"-"+str(interval.end))
 
                             current_vcfs = bed_df.at[data["idx"], "vcf_files"]
