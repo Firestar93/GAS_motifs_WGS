@@ -93,8 +93,22 @@ def parse_vcf_once(vcf_file, bed_trees, bed_df):
                             current_vcfs = bed_df.at[data["idx"], "vcf_files"]
                             if pd.isna(current_vcfs) or current_vcfs == "":
                                 bed_df.at[data["idx"], "vcf_files"] = os.path.basename(vcf_file)
+                                bed_df.at[data["idx"], "modified_sequence"] = modified_sequence
+                                bed_df.at[data["idx"], "position_chromosome"] = str(vcf_chrom)
+                                bed_df.at[data["idx"], "position_nucleotide"] = str(vcf_pos)
+                                bed_df.at[data["idx"], "ref_allele"] = ref
+                                bed_df.at[data["idx"], "alt_allele"] = alt
+                                bed_df.at[data["idx"], "position_in_GAS"] = str(pos)
                             else:
                                 bed_df.at[data["idx"], "vcf_files"] += f";{os.path.basename(vcf_file)}"
+                                bed_df.at[data["idx"], "modified_sequence"] += f";{modified_sequence}"
+                                bed_df.at[data["idx"], "position_chromosome"] += f";{vcf_chrom}"
+                                bed_df.at[data["idx"], "position_nucleotide"] += f";{vcf_pos}"
+                                bed_df.at[data["idx"], "ref_allele"] += f";{ref}"
+                                bed_df.at[data["idx"], "alt_allele"] += f";{alt}"
+                                bed_df.at[data["idx"], "position_in_GAS"] += f";{pos}"
+
+
 
 def check_gas_motif(sequence):
     """
@@ -112,6 +126,13 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
 
     # Initialize an empty column for VCF file names
     bed_df["vcf_files"] = ""
+    bed_df["modified_sequence"] = ""
+    bed_df["position_chromosome"] = ""
+    bed_df["position_nucleotide"] = ""
+    bed_df["ref_allele"] = ""
+    bed_df["alt_allele"] = ""
+    bed_df["alt_allele"] = "position_in_GAS"
+
 
     # Get all VCF files from the folder
     vcf_files = glob.glob(os.path.join(vcf_folder, "*.vcf"))
@@ -126,7 +147,7 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     bed_df = bed_df[bed_df["vcf_files"].notna() & (bed_df["vcf_files"] != "")]
 
     # Write the updated BED file
-    bed_df.to_csv(output_bed, sep="\t", index=False, header=False)
+    bed_df.to_csv(output_bed, sep="\t", index=False, header=True)
 
     # Print directories for logging
     print_with_time(f"Input BED file: {os.path.abspath(bed_file)}")
@@ -137,8 +158,8 @@ if __name__ == "__main__":
     bed_file = (
         "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AlmostGASmotifs\\all_motifs.sorted.bed"
     )
-    vcf_folder = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Sample2\\"
-    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\test_output.bed"
+    vcf_folder = "\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Family1-AOSD\\"
+    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Family1_AOSD.bed"
 
     # Process BED and VCF files
     process_bed_and_vcf(bed_file, vcf_folder, output)
