@@ -122,6 +122,9 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     # Clean up VCF file lists and remove trailing semicolons
     bed_df["vcf_files"] = bed_df["vcf_files"].str.rstrip(";")
 
+    # Filter out rows where 'vcf_files' is empty
+    bed_df = bed_df[bed_df["vcf_files"].notna() & (bed_df["vcf_files"] != "")]
+
     # Write the updated BED file
     bed_df.to_csv(output_bed, sep="\t", index=False, header=False)
 
