@@ -19,11 +19,11 @@ def build_bed_intervals(bed_file):
     # Load the BED file
     print_with_time("Load the bedfile")
     bed_df = pd.read_csv(
-        bed_file, sep="\t", header=None, names=["chrom", "start", "end", "sequence"]
+        bed_file, sep="\t", header=None, names=["chrom", "start", "end", "type"]
     )
-    # Process the 'sequence' column
-    bed_df["sequence_type"] = bed_df["sequence"]
-    bed_df["sequence"] = bed_df["sequence"].str.split('-').str[1]
+
+    bed_df = bed_df[bed_df["type"] != "4spacer"]
+    bed_df["sequence"] = "TTCxxxGAA"
 
     print_with_time("Finished loading the bedfile")
     print_with_time("Populate the IntervalTree")
@@ -38,7 +38,6 @@ def build_bed_intervals(bed_file):
         end = row["end"]
         bed_trees[chrom][start:end] = {
             "sequence": row["sequence"],
-            "sequence_type": row["sequence_type"],
             "idx": idx,
         }
 
@@ -86,7 +85,7 @@ def parse_vcf_once(vcf_file, bed_trees, bed_df):
                             + data["sequence"][pos + 1:]
                         )
                         if check_gas_motif(modified_sequence):
-                            print_with_time("Found GAS motif creating SNP! " + str(vcf_chrom) + ";"+ str(vcf_pos) +";" + ref +";" + alt)
+                            print_with_time("Found GAS motif destroying  SNP! " + str(vcf_chrom) + ";"+ str(vcf_pos) +";" + ref +";" + alt)
                             print_with_time("in GAS motif modified sequence: " + modified_sequence + " from original sequence:" + data["sequence"] + " at position " + str(pos))
                             print_with_time("at " + str(interval.begin)+"-"+str(interval.end))
 
@@ -114,7 +113,7 @@ def check_gas_motif(sequence):
     """
     Checks if the sequence matches GAS motif patterns TTCxxxGAA or TTCxxxxGAA.
     """
-    return sequence[:3] == "TTC" and sequence[-3:] == "GAA"
+    return sequence[:3] != "TTC" or sequence[-3:] != "GAA"
 
 def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
     """
@@ -156,10 +155,11 @@ def process_bed_and_vcf(bed_file, vcf_folder, output_bed):
 
 if __name__ == "__main__":
     bed_file = (
-        "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AlmostGASmotifs\\all_motifs.sorted.bed"
+        "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AllGASmotifs\\allMotifs.sorted.bed"
     )
-    vcf_folder = "\\\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Others\\"
-    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\others.bed"
+    #vcf_folder = "\\\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Others\\"
+    vcf_folder = "C:\\Users\\hoffmannmd\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Sample2"
+    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\sample2.bed"
 
     if not os.path.exists(vcf_folder):
         print_with_time(f"Network folder not found: {vcf_folder}")
