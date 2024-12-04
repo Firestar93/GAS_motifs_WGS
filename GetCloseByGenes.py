@@ -20,7 +20,7 @@ def load_gene_intervals_from_gtf(gtf_file):
             if line.startswith("#"):
                 continue  # Skip header lines
             cols = line.strip().split('\t')
-            if cols[2] != "gene":
+            if cols[2] != "transcript":
                 continue  # We only care about gene entries
 
             chrom = cols[0]  # Chromosome
@@ -31,7 +31,7 @@ def load_gene_intervals_from_gtf(gtf_file):
             # Extract gene_name from attributes
             gene_name = ""
             for attr in attributes.split(";"):
-                if attr.strip().startswith("gene_name"):
+                if attr.strip().startswith("gene_id"):
                     gene_name = attr.split('"')[1]
                     break
 
@@ -77,6 +77,9 @@ def annotate_bed_with_local_data(input_dir, output_dir, gene_tree):
                 start = int(row['start'])
                 end = int(row['end'])
 
+                if not chrom.startswith("chr"):
+                    chrom = f"chr{chrom}"  # Add 'chr' prefix if missing
+
                 counter = counter + 1
                 if counter % 100 == 0:
                     print_with_time("Processed " + str(counter) + " SNPs.")
@@ -103,9 +106,9 @@ def annotate_bed_with_local_data(input_dir, output_dir, gene_tree):
 
 
 # Example usage
-gtf_file = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\hg38.refGene"
-input_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\GeneNameTest"
-output_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\GeneNameTest_output"
+gtf_file = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\hg38.refGene.gtf"
+input_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AlmostGASmotifs_samples"
+output_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AlmostGASmotifs_samples_annotated"
 
 print_with_time("Start building tree.")
 # Load the gene annotation data into an interval tree
