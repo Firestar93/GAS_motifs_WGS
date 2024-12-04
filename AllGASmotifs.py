@@ -62,7 +62,6 @@ def parse_vcf_once(vcf_file, bed_trees, bed_df):
                 fields[3],
                 fields[4],
             )
-            vcf_chrom = vcf_chrom.replace('chr', '')
 
             counter += 1
             if counter % 10000 == 0:
@@ -73,7 +72,7 @@ def parse_vcf_once(vcf_file, bed_trees, bed_df):
                 overlapping_intervals = bed_trees[vcf_chrom][vcf_pos]
                 for interval in overlapping_intervals:
                     data = interval.data
-                    pos = vcf_pos - interval.begin - 1  # Position within the sequence
+                    pos = vcf_pos - interval.begin  # Position within the sequence
                     if pos < 0:
                         continue
                     for alt in alts.split(","):
@@ -157,9 +156,9 @@ if __name__ == "__main__":
     bed_file = (
         "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AllGASmotifs\\allMotifs.sorted.bed"
     )
-    #vcf_folder = "\\\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Others\\"
-    vcf_folder = "C:\\Users\\hoffmannmd\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Sample2"
-    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\sample2.bed"
+    vcf_folder = "\\\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Others\\"
+    #vcf_folder = "C:\\Users\\hoffmannmd\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Sample2"
+    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\others.bed"
 
     if not os.path.exists(vcf_folder):
         print_with_time(f"Network folder not found: {vcf_folder}")
