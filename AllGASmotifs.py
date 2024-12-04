@@ -156,9 +156,9 @@ if __name__ == "__main__":
     bed_file = (
         "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AllGASmotifs\\allMotifs.sorted.bed"
     )
-    vcf_folder = "\\\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Others\\"
+    vcf_folder = "\\\\shares2.dkisilon2.niddk.nih.gov\\LGPGenomics\\shared\\Austria-WGS\\Family4\\"
     #vcf_folder = "C:\\Users\\hoffmannmd\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Sample2"
-    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\others.bed"
+    output = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\Family4.bed"
 
     if not os.path.exists(vcf_folder):
         print_with_time(f"Network folder not found: {vcf_folder}")
