@@ -4,3 +4,6 @@
 
 
 02_GetCloseByGenes.py takes the output of 01 Python scripts and annotates gene names (either inside, up to 2.5 kb or up to 10 kb)
+
+
+03_GetOnlyImmuneGenes.py filter for only immune genes from results from 02_GetCloseByGenes. Immune genes were obtained as in Hoffmann et al. (2024) "Data-driven projections of candidate enhancer-activating SNPs in immune regulation"
