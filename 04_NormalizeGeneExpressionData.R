@@ -8,8 +8,8 @@ if (!requireNamespace("DESeq2", quietly = TRUE)) {
 library(DESeq2)
 
 # Input directory containing gene expression files
-input_dir <- "path/to/your/input_directory"  # Replace with your input directory
-output_file <- "path/to/your/output_file.tsv"  # Replace with your desired output file path
+input_dir <- "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\03_RNA-seq\\Others\\Raw"  # Replace with your input directory
+output_file <- "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\03_RNA-seq\\Others\\Others_DESeq2_normalized.tsv"  # Replace with your desired output file path
 
 # List all gene expression files in the input directory
 file_list <- list.files(input_dir, full.names = TRUE, pattern = "\\.txt$")
@@ -43,6 +43,6 @@ dds <- estimateSizeFactors(dds)
 normalized_counts <- counts(dds, normalized = TRUE)
 
 # Save normalized counts to the output file
-write.table(normalized_counts, file = output_file, sep = "\t", quote = FALSE, col.names = NA)
+write.table(normalized_counts, file = output_file, sep = "\t", quote = FALSE)
 
 cat("Normalized gene expression data has been saved to:", output_file, "\n")
