@@ -49,10 +49,10 @@ def create_boxplots_and_tests(deseq2_matrix, bed_file, output_path):
             sns.boxplot(data=[with_gas_data, without_gas_data])
             plt.xticks([0, 1], ["With GAS motif", "Without GAS motif"])
             title = (
-                f"{row['chrom']}:{row['start']}-{row['end']}\n"
-                f"Ref.: {row['ref_allele']}; Alt.: {row['alt_allele']} at position: {row['position_nucleotide']}\n"
+                f"hg38 position {row['chrom']}:{row['start']}-{row['end']}\n"
+                f"Ref.: {row['ref_allele']}; Alt.: {row['alt_allele']} at nucleotide position: {row['position_nucleotide']} and motif position: {row['position_in_GAS']}\n"
                 f"{row['sequence']} → {row['modified_sequence']}\n"
-                f"Gene: {gene} (Source: {'Inside_Genes' if gene == row['Inside_Genes'] else 'Near_Genes_<2500bp' if gene == row['Near_Genes_<2500bp'] else 'Near_Genes_2500-10000bp'})"
+                f"Gene: {gene} (Source: {'Inside_Genes' if gene == row['Inside_Genes'] else 'Near_Genes_<2500bp' if gene == row['Near_Genes_<2500bp'] else 'Near_Genes_2500-10000bp'})\n"
                 f"p-value: {'NA' if p_value is None else f'{p_value:.3e}'}"
             )
             plt.title(title)
@@ -61,7 +61,7 @@ def create_boxplots_and_tests(deseq2_matrix, bed_file, output_path):
             plt.tight_layout()
 
             # Save plot
-            plot_filename = f"{gene}_Source-{'Inside_Genes' if gene == row['Inside_Genes'] else 'Near_Genes_<2500bp' if gene == row['Near_Genes_<2500bp'] else 'Near_Genes_2500-10000bp'}.png"
+            plot_filename = f"{gene}_Source-{'Inside_Genes' if gene == row['Inside_Genes'] else 'Near_Genes_2500bp' if gene == row['Near_Genes_<2500bp'] else 'Near_Genes_2500-10000bp'}.png"
             plt.savefig(os.path.join(output_path, plot_filename))
             plt.close()
 
