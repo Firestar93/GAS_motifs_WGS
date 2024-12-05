@@ -107,8 +107,8 @@ def annotate_bed_with_local_data(input_dir, output_dir, gene_tree):
 
 # Example usage
 gtf_file = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\hg38.refGene.gtf"
-input_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AlmostGASmotifs_samples"
-output_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AlmostGASmotifs_samples_annotated"
+input_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AllGASmotif_samples"
+output_directory = "C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\AllGASmotif_samples_annotated"
 
 print_with_time("Start building tree.")
 # Load the gene annotation data into an interval tree
