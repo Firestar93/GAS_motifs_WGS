@@ -20,8 +20,12 @@ def create_boxplots_and_tests(deseq2_matrix, bed_file, output_path):
         vcf_samples = [sample.split("_")[1].split(".")[0] for sample in vcf_samples]
 
         # Separate LUDx samples into with and without GAS motif groups
-        with_gas = [col for col in deseq2_matrix.columns if any(f"LUD{x}" in col for x in vcf_samples)]
-        without_gas = [col for col in deseq2_matrix.columns if col not in with_gas]
+
+        ##################################################################
+        #### THIS NEEDS TO BE EXCHANGED THE OTHER WAY ROUND ALL THE TIME!!
+        ##################################################################
+        without_gas = [col for col in deseq2_matrix.columns if any(f"LUD{x}" in col for x in vcf_samples)]
+        with_gas = [col for col in deseq2_matrix.columns if col not in without_gas]
 
         if len(without_gas) == 0:
             continue
@@ -78,8 +82,8 @@ def create_boxplots_and_tests(deseq2_matrix, bed_file, output_path):
 
 # Load the DESeq2 normalized matrix and the BED file
 deseq2_matrix_path = 'C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\03_RNA-seq\\Others\\Others_DESeq2_normalized.tsv'
-bed_file_path = 'C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\02_d_AlmostGASmotifs_samples_annotated_immuneGenes\\annotated_others.bed'
-output_file_path = 'C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\02_e_AlmostGASmotifs_samples_annotated_immuneGenes\\Others\\plots'
+bed_file_path = 'C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\01_d_AllGASmotif_samples_annotated_immuneGenes\\annotated_others.bed'
+output_file_path = 'C:\\Users\\hoffmannmd\\OneDrive - National Institutes of Health\\00_PROJECTS\\GAS_motifs_WGS\\01_e_PLOTS_AllGASmotif_samples_annotated_immuneGenes\\Others\\plots'
 
 # Read the DESeq2 normalized matrix and the BED file
 deseq2_matrix = pd.read_csv(deseq2_matrix_path, sep="\t", index_col=0)
